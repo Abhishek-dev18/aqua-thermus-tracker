@@ -29,6 +29,7 @@ interface Props {
 
 export default function CustomerManagement({ customers, setCustomers }: Props) {
   const { toast } = useToast();
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [newCustomer, setNewCustomer] = useState({
     name: "",
     area: "",
@@ -50,7 +51,7 @@ export default function CustomerManagement({ customers, setCustomers }: Props) {
     }
 
     const customer: Customer = {
-      id: crypto.randomUUID(),
+      id: selectedCustomer?.id || crypto.randomUUID(),
       name: newCustomer.name,
       area: newCustomer.area,
       mobile: newCustomer.mobile,
@@ -62,10 +63,26 @@ export default function CustomerManagement({ customers, setCustomers }: Props) {
         jar: parseFloat(newCustomer.jarRate),
         thermos: parseFloat(newCustomer.thermosRate),
       },
-      createdAt: new Date(),
+      createdAt: selectedCustomer?.createdAt || new Date(),
     };
 
-    setCustomers([...customers, customer]);
+    if (selectedCustomer) {
+      setCustomers(
+        customers.map((c) => (c.id === selectedCustomer.id ? customer : c))
+      );
+      toast({
+        title: "Success",
+        description: "Customer updated successfully",
+      });
+    } else {
+      setCustomers([...customers, customer]);
+      toast({
+        title: "Success",
+        description: "Customer added successfully",
+      });
+    }
+
+    setSelectedCustomer(null);
     setNewCustomer({
       name: "",
       area: "",
@@ -75,17 +92,33 @@ export default function CustomerManagement({ customers, setCustomers }: Props) {
       jarRate: "0",
       thermosRate: "0",
     });
+  };
 
+  const handleEdit = (customer: Customer) => {
+    setSelectedCustomer(customer);
+    setNewCustomer({
+      name: customer.name,
+      area: customer.area,
+      mobile: customer.mobile,
+      jar: customer.preferences.jar,
+      thermos: customer.preferences.thermos,
+      jarRate: customer.rates.jar.toString(),
+      thermosRate: customer.rates.thermos.toString(),
+    });
+  };
+
+  const handleDelete = (customerId: string) => {
+    setCustomers(customers.filter((c) => c.id !== customerId));
     toast({
       title: "Success",
-      description: "Customer added successfully",
+      description: "Customer deleted successfully",
     });
   };
 
   return (
     <div className="space-y-6">
       <div className="flex justify-end">
-        <Dialog>
+        <Dialog open={!!selectedCustomer} onOpenChange={() => setSelectedCustomer(null)}>
           <DialogTrigger asChild>
             <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
               Add New Customer
@@ -93,7 +126,9 @@ export default function CustomerManagement({ customers, setCustomers }: Props) {
           </DialogTrigger>
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
-              <DialogTitle>Add New Customer</DialogTitle>
+              <DialogTitle>
+                {selectedCustomer ? "Edit Customer" : "Add New Customer"}
+              </DialogTitle>
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="grid gap-2">
@@ -175,7 +210,9 @@ export default function CustomerManagement({ customers, setCustomers }: Props) {
                 )}
               </div>
             </div>
-            <Button onClick={handleAddCustomer}>Add Customer</Button>
+            <Button onClick={handleAddCustomer}>
+              {selectedCustomer ? "Update Customer" : "Add Customer"}
+            </Button>
           </DialogContent>
         </Dialog>
       </div>
@@ -189,6 +226,7 @@ export default function CustomerManagement({ customers, setCustomers }: Props) {
               <TableHead>Mobile</TableHead>
               <TableHead>Products</TableHead>
               <TableHead>Rates</TableHead>
+              <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -212,6 +250,24 @@ export default function CustomerManagement({ customers, setCustomers }: Props) {
                   {customer.preferences.thermos
                     ? `Thermos: ₹${customer.rates.thermos}`
                     : ""}
+                </TableCell>
+                <TableCell>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleEdit(customer)}
+                    >
+                      Edit
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => handleDelete(customer.id)}
+                    >
+                      Delete
+                    </Button>
+                  </div>
                 </TableCell>
               </TableRow>
             ))}

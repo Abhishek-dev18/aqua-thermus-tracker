@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Customer, Supply } from "@/types";
 import {
@@ -20,10 +19,13 @@ interface Props {
 }
 
 export default function BillingSection({ customers, supplies }: Props) {
+  const [selectedArea, setSelectedArea] = useState<string>("");
   const [selectedCustomer, setSelectedCustomer] = useState<string>("");
   const [selectedMonth, setSelectedMonth] = useState<string>(
     format(new Date(), "yyyy-MM")
   );
+
+  const areas = Array.from(new Set(customers.map((c) => c.area)));
 
   const getCustomerBill = (customerId: string) => {
     const customer = customers.find((c) => c.id === customerId);
@@ -65,18 +67,35 @@ export default function BillingSection({ customers, supplies }: Props) {
 
   return (
     <div className="space-y-6">
-      <div className="flex gap-4 items-center">
+      <div className="flex gap-4 items-center flex-wrap">
+        <select
+          className="flex h-9 w-[180px] rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+          value={selectedArea}
+          onChange={(e) => {
+            setSelectedArea(e.target.value);
+            setSelectedCustomer("");
+          }}
+        >
+          <option value="">All Areas</option>
+          {areas.map((area) => (
+            <option key={area} value={area}>
+              {area}
+            </option>
+          ))}
+        </select>
         <select
           className="flex h-9 w-[240px] rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
           value={selectedCustomer}
           onChange={(e) => setSelectedCustomer(e.target.value)}
         >
           <option value="">Select Customer</option>
-          {customers.map((customer) => (
-            <option key={customer.id} value={customer.id}>
-              {customer.name} - {customer.area}
-            </option>
-          ))}
+          {customers
+            .filter((c) => !selectedArea || c.area === selectedArea)
+            .map((customer) => (
+              <option key={customer.id} value={customer.id}>
+                {customer.name} - {customer.area}
+              </option>
+            ))}
         </select>
         <input
           type="month"
