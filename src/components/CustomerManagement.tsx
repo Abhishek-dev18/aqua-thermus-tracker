@@ -30,6 +30,7 @@ interface Props {
 export default function CustomerManagement({ customers, setCustomers }: Props) {
   const { toast } = useToast();
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newCustomer, setNewCustomer] = useState({
     name: "",
     area: "",
@@ -92,6 +93,7 @@ export default function CustomerManagement({ customers, setCustomers }: Props) {
       jarRate: "0",
       thermosRate: "0",
     });
+    setIsDialogOpen(false);
   };
 
   const handleEdit = (customer: Customer) => {
@@ -105,6 +107,7 @@ export default function CustomerManagement({ customers, setCustomers }: Props) {
       jarRate: customer.rates.jar.toString(),
       thermosRate: customer.rates.thermos.toString(),
     });
+    setIsDialogOpen(true);
   };
 
   const handleDelete = (customerId: string) => {
@@ -115,12 +118,29 @@ export default function CustomerManagement({ customers, setCustomers }: Props) {
     });
   };
 
+  const handleDialogClose = () => {
+    setIsDialogOpen(false);
+    setSelectedCustomer(null);
+    setNewCustomer({
+      name: "",
+      area: "",
+      mobile: "",
+      jar: false,
+      thermos: false,
+      jarRate: "0",
+      thermosRate: "0",
+    });
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-end">
-        <Dialog open={!!selectedCustomer} onOpenChange={() => setSelectedCustomer(null)}>
+        <Dialog open={isDialogOpen} onOpenChange={handleDialogClose}>
           <DialogTrigger asChild>
-            <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
+            <Button 
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
+              onClick={() => setIsDialogOpen(true)}
+            >
               Add New Customer
             </Button>
           </DialogTrigger>
