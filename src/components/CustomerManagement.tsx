@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import {
   Dialog,
@@ -34,7 +33,9 @@ export default function CustomerManagement({ customers, setCustomers }: Props) {
   const [newCustomer, setNewCustomer] = useState({
     name: "",
     area: "",
+    landmark: "",
     mobile: "",
+    securityMoney: "0",
     jar: false,
     thermos: false,
     jarRate: "0",
@@ -55,7 +56,9 @@ export default function CustomerManagement({ customers, setCustomers }: Props) {
       id: selectedCustomer?.id || crypto.randomUUID(),
       name: newCustomer.name,
       area: newCustomer.area,
+      landmark: newCustomer.landmark,
       mobile: newCustomer.mobile,
+      securityMoney: parseFloat(newCustomer.securityMoney),
       preferences: {
         jar: newCustomer.jar,
         thermos: newCustomer.thermos,
@@ -87,7 +90,9 @@ export default function CustomerManagement({ customers, setCustomers }: Props) {
     setNewCustomer({
       name: "",
       area: "",
+      landmark: "",
       mobile: "",
+      securityMoney: "0",
       jar: false,
       thermos: false,
       jarRate: "0",
@@ -101,7 +106,9 @@ export default function CustomerManagement({ customers, setCustomers }: Props) {
     setNewCustomer({
       name: customer.name,
       area: customer.area,
+      landmark: customer.landmark,
       mobile: customer.mobile,
+      securityMoney: customer.securityMoney.toString(),
       jar: customer.preferences.jar,
       thermos: customer.preferences.thermos,
       jarRate: customer.rates.jar.toString(),
@@ -155,12 +162,33 @@ export default function CustomerManagement({ customers, setCustomers }: Props) {
                 />
               </div>
               <div className="grid gap-2">
+                <Label htmlFor="landmark">Landmark</Label>
+                <Input
+                  id="landmark"
+                  value={newCustomer.landmark}
+                  onChange={(e) =>
+                    setNewCustomer({ ...newCustomer, landmark: e.target.value })
+                  }
+                />
+              </div>
+              <div className="grid gap-2">
                 <Label htmlFor="mobile">Mobile</Label>
                 <Input
                   id="mobile"
                   value={newCustomer.mobile}
                   onChange={(e) =>
                     setNewCustomer({ ...newCustomer, mobile: e.target.value })
+                  }
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="securityMoney">Security Money</Label>
+                <Input
+                  id="securityMoney"
+                  type="number"
+                  value={newCustomer.securityMoney}
+                  onChange={(e) =>
+                    setNewCustomer({ ...newCustomer, securityMoney: e.target.value })
                   }
                 />
               </div>
@@ -226,7 +254,9 @@ export default function CustomerManagement({ customers, setCustomers }: Props) {
             <TableRow>
               <TableHead>Name</TableHead>
               <TableHead>Area</TableHead>
+              <TableHead>Landmark</TableHead>
               <TableHead>Mobile</TableHead>
+              <TableHead>Security Money</TableHead>
               <TableHead>Products</TableHead>
               <TableHead>Rates</TableHead>
               <TableHead>Actions</TableHead>
@@ -237,7 +267,9 @@ export default function CustomerManagement({ customers, setCustomers }: Props) {
               <TableRow key={customer.id}>
                 <TableCell>{customer.name}</TableCell>
                 <TableCell>{customer.area}</TableCell>
+                <TableCell>{customer.landmark}</TableCell>
                 <TableCell>{customer.mobile}</TableCell>
+                <TableCell>₹{customer.securityMoney}</TableCell>
                 <TableCell>
                   {[
                     customer.preferences.jar ? "Jar" : "",

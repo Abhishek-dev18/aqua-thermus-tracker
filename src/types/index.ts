@@ -3,7 +3,9 @@ export interface Customer {
   id: string;
   name: string;
   area: string;
+  landmark: string;
   mobile: string;
+  securityMoney: number;
   preferences: {
     jar: boolean;
     thermos: boolean;
