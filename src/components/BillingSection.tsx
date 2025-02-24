@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Customer, Supply } from "@/types";
 import {
@@ -20,10 +19,13 @@ interface Props {
 }
 
 export default function BillingSection({ customers, supplies }: Props) {
+  const [selectedArea, setSelectedArea] = useState<string>("");
   const [selectedCustomer, setSelectedCustomer] = useState<string>("");
   const [selectedMonth, setSelectedMonth] = useState<string>(
     format(new Date(), "yyyy-MM")
   );
+
+  const areas = Array.from(new Set(customers.map((c) => c.area)));
 
   const getCustomerBill = (customerId: string) => {
     const customer = customers.find((c) => c.id === customerId);
@@ -65,18 +67,35 @@ export default function BillingSection({ customers, supplies }: Props) {
 
   return (
     <div className="space-y-6">
-      <div className="flex gap-4 items-center">
+      <div className="flex gap-4 items-center flex-wrap">
+        <select
+          className="flex h-9 w-[180px] rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+          value={selectedArea}
+          onChange={(e) => {
+            setSelectedArea(e.target.value);
+            setSelectedCustomer("");
+          }}
+        >
+          <option value="">All Areas</option>
+          {areas.map((area) => (
+            <option key={area} value={area}>
+              {area}
+            </option>
+          ))}
+        </select>
         <select
           className="flex h-9 w-[240px] rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
           value={selectedCustomer}
           onChange={(e) => setSelectedCustomer(e.target.value)}
         >
           <option value="">Select Customer</option>
-          {customers.map((customer) => (
-            <option key={customer.id} value={customer.id}>
-              {customer.name} - {customer.area}
-            </option>
-          ))}
+          {customers
+            .filter((c) => !selectedArea || c.area === selectedArea)
+            .map((customer) => (
+              <option key={customer.id} value={customer.id}>
+                {customer.name} - {customer.area}
+              </option>
+            ))}
         </select>
         <input
           type="month"
@@ -93,7 +112,7 @@ export default function BillingSection({ customers, supplies }: Props) {
 
       {bill && (
         <div className="space-y-6">
-          <Card>
+          <Card className="print:shadow-none">
             <CardHeader>
               <CardTitle>Monthly Bill - {format(new Date(selectedMonth), "MMMM yyyy")}</CardTitle>
             </CardHeader>
@@ -114,36 +133,48 @@ export default function BillingSection({ customers, supplies }: Props) {
                 </div>
               </div>
 
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Jars</TableHead>
-                    <TableHead>Thermos</TableHead>
-                    <TableHead>Amount</TableHead>
-                    <TableHead>Paid</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {bill.supplies.map((supply) => {
-                    const amount =
-                      supply.delivered.jars * bill.customer.rates.jar +
-                      supply.delivered.thermos * bill.customer.rates.thermos;
+              <div className="print:text-sm">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-24">Date</TableHead>
+                      <TableHead className="w-16">Jars</TableHead>
+                      <TableHead className="w-16">Thermos</TableHead>
+                      <TableHead className="w-20">Amount</TableHead>
+                      <TableHead className="w-20">Paid</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody className="text-sm">
+                    {bill.supplies.map((supply) => {
+                      const amount =
+                        supply.delivered.jars * bill.customer.rates.jar +
+                        supply.delivered.thermos * bill.customer.rates.thermos;
 
-                    return (
-                      <TableRow key={supply.id}>
-                        <TableCell>
-                          {format(supply.date, "dd/MM/yyyy")}
-                        </TableCell>
-                        <TableCell>{supply.delivered.jars}</TableCell>
-                        <TableCell>{supply.delivered.thermos}</TableCell>
-                        <TableCell>₹{amount}</TableCell>
-                        <TableCell>₹{supply.payment}</TableCell>
+                      return (
+                        <TableRow key={supply.id} className="h-8">
+                          <TableCell>
+                            {format(supply.date, "dd/MM/yyyy")}
+                          </TableCell>
+                          <TableCell>{supply.delivered.jars}</TableCell>
+                          <TableCell>{supply.delivered.thermos}</TableCell>
+                          <TableCell>₹{amount}</TableCell>
+                          <TableCell>₹{supply.payment}</TableCell>
+                        </TableRow>
+                      );
+                    })}
+                    {/* Add empty rows to fill up to 31 days */}
+                    {[...Array(31 - bill.supplies.length)].map((_, i) => (
+                      <TableRow key={`empty-${i}`} className="h-8">
+                        <TableCell></TableCell>
+                        <TableCell></TableCell>
+                        <TableCell></TableCell>
+                        <TableCell></TableCell>
+                        <TableCell></TableCell>
                       </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             </CardContent>
           </Card>
         </div>
